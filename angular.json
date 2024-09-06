@@ -30,7 +30,9 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.sass"
+              "src/styles.sass",
+              "node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+              "node_modules/highlight.js/styles/atom-one-dark.css"
             ],
             "scripts": []
           },

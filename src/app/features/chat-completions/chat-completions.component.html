@@ -1,0 +1,80 @@
+<div style="background-color: whitesmoke;height: 100vh;width: 100%;
+display: flex;align-items: center;justify-content: center;gap: 16px;">
+    <div style="height: 95vh;width: 25vw;background-color: #FFF;border-radius: 5px;">
+        <div style="font-size: 24px;font-weight: 600;padding: 24px;">BuildTest by dev</div>
+        <div style="font-size: 18px;font-weight: 600;padding: 20px;margin-top: 10px;">Chat History</div>
+        <div class="selecthistory">
+            <ul nz-menu nzMode="inline" style="display: flex;flex-direction: column;padding: 0px 20px;">
+                <li nz-menu-item *ngFor="let item of headerdata; index as idx" (click)="selectHistory(item.uid)"
+                    style="width: 100%;border-radius: 12px;" class="historybox">
+                    <span>{{item.content}}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div style="height: 95vh;width: 60vw;background-color: #FFF;border-radius: 5px;position: relative;">
+        <div style="font-size: 24px;font-weight: 600;padding: 24px;
+            border-bottom: solid 1px #c3c3c3;color: #A0A0A0;">
+            <span style="margin-left: 20px;">AIChat - IOT</span>
+        </div>
+        <div style="height: 72vh;overflow-y: auto;overflow-x: auto;margin-top: 10px;padding: 10px 20px 0px 20px;">
+            <div *ngFor="let item of historydata" class="box-chat">
+                <span class="material-symbols-outlined" *ngIf="item.role == 'model'" style="padding-top: 24px;">
+                    smart_toy
+                </span>
+                <div [class]="item.role == 'user'?'box-user':'box-model'">
+                    <div [class]="item.role == 'user'?'user':'model'">
+                        <!-- {{item.role == 'user'? 'user:':'model:'}} -->
+                        <div *ngIf="item.role == 'user'" style="font-size: 16px;">
+                            {{ item.content }}
+                        </div>
+                        <div *ngIf="item.role == 'model'" style="font-size: 16px;">
+                            <!-- แปลงข้อความ part.text เป็น HTML -->
+                            <div [innerHTML]="formatMarkdownToHTML(item.content)" class="modelmessage"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-window">
+                <div *ngFor="let message of messages" class="chat-message">
+                    <div [class]="message.role == 'user'?'box-user':'box-model'">
+                        <div [class]="message.role == 'user'?'user':'model'">
+                            <div *ngIf="message.role == 'user'" style="font-size: 16px;">
+                                {{ message.content }}
+                            </div>
+                            <div *ngIf="message.role == 'model'" style="font-size: 16px;">
+                                <!-- แปลงข้อความ part.text เป็น HTML -->
+                                <div [innerHTML]="formatMarkdownToHTML(message.content)" class="modelmessage"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div
+            style="padding: 24px;position: absolute;bottom: 0;width: 100%;border-top: solid 1px #c3c3c3;display: flex;gap: 5px;">
+            <textarea nz-input placeholder="What do you want to learn ? I can help you discover new things."
+                [nzAutosize]="{ minRows: 2, maxRows: 12 }" nzBorderless [(ngModel)]="inputRemarkapproved"
+                (keydown.enter)="message($event)"
+                style="width: 100%;height: 100%;border-radius: 16px;padding: 16px;overflow: hidden;resize: none;border: 0;"></textarea>
+            <div style="display: flex;align-items: flex-end;margin-bottom: 8px;">
+                <button nz-button nzType="primary" style="width: 40px;display: flex; align-items: center;justify-content: center;
+                    border-radius: 100px;height: 40px;border: 0;" (click)="message($event)"
+                    [disabled]="!inputRemarkapproved"
+                    [style.background-color]="inputRemarkapproved? '#000000':'#A0A0A0'" *ngIf="isloading === false">
+                    <span class="material-symbols-outlined" style="color: #FFF;font-size: 36px;">
+                        assistant_navigation
+                    </span>
+                </button>
+                <button nz-button nzType="primary" style="width: 40px;display: flex; align-items: center;justify-content: center;
+                    border-radius: 100px;height: 40px;border: 0;background-color: #000000;"
+                    *ngIf="isloading === true">
+                    <span class="material-symbols-outlined" style="color: #FFF;font-size: 40px;">
+                        pending
+                    </span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
