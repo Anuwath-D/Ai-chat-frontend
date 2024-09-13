@@ -1,3 +1,18 @@
+.newchat
+    background: whitesmoke
+    font-size: 16px
+
+.newchat:hover
+    background: rgba(245, 249, 255, 1)
+    color: #1890FF
+    font-size: 16px
+
+.selectnewchat
+    background: rgba(245, 249, 255, 1)
+    color: #1890FF
+    font-size: 16px
+    font-weight: 600
+
 .historybox
     background: #FCFCFD
     font-size: 16px
@@ -70,3 +85,32 @@ pre
 .modelmessage
     ::ng-deep  p
         margin-bottom: 0px
+
+.chat-body
+    scroll-behavior: smooth
+
+.animated-div
+    width: 100px
+    height: 100px
+    animation: changeSize 1s linear infinite
+
+@keyframes changeSize
+    0%
+        width: 40px
+        height: 40px
+
+    25%
+        width: 40px
+        height: 30px
+
+    50%
+        width: 40px
+        height: 20px
+
+    75%
+        width: 40px
+        height: 5px
+
+    100%
+        width: 40px
+        height: -10px

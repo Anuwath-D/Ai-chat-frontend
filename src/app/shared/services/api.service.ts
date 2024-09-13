@@ -23,4 +23,8 @@ export class ApiService {
     return this.http.post<any>(`/api/v1/chat/completions` , body)
   }
 
+  save_chat(body:any){
+    return this.http.post<any>(`/api/v1/chat/completions/save` , body)
+  }
+
 }

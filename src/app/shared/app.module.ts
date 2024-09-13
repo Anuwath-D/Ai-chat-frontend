@@ -11,6 +11,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
     NzMenuModule,
     BrowserAnimationsModule,
     NzInputModule,
-    NzButtonModule
+    NzButtonModule,
+    NzSpinModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

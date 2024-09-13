@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import hljs from 'highlight.js';
 declare var Prism: any;
 import { ApiService } from 'src/app/shared/services/api.service';
@@ -20,16 +20,28 @@ hljs.registerLanguage('python', python);
   templateUrl: './chat-completions.component.html',
   styleUrls: ['./chat-completions.component.sass']
 })
-export class ChatCompletionsComponent implements OnInit {
+export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestroy {
   title = 'ai-chat-frontend';
 
   historydata: Array<any> = [] as Array<any>;
+  uid_chat = ''
   headerdata: Array<any> = [] as Array<any>;
   isChatuid: { [uid: number]: boolean } = {};
-  inputRemarkapproved: string = '';
+  input_chat: string = '';
   savechat_onweb: Array<any> = [] as Array<any>;
   messages: Array<any> = [] as Array<any>;  // เก็บข้อความสนทนา
   isloading = false
+  isShowScrollToBottomBtn = false
+  shouldScrollChatBodyToBottom = false
+  prevScrollHeight: number = 0;
+  fix_scrollbug = 0
+  start_heightchat = 78
+  height_chat = 0
+  height_text = 0
+  windowInnerWidth : any
+  checkmessage = false
+  header_chattext = ''
+  select_newchat = false
 
   constructor(
     private service: ApiService,
@@ -37,19 +49,58 @@ export class ChatCompletionsComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) { this.setupMarked(); }
 
+  @ViewChild('chatBody') chatBody!: ElementRef;
+  @ViewChild('Text_chat') Text_chat!: ElementRef;
+
+  // ฟังก์ชันนี้จะถูกเรียกเมื่อผู้ใช้พยายามปิดหน้าเว็บหรือรีเฟรช
+  @HostListener('window:unload', ['$event'])
+  unloadHandler(event: any) {
+    this.saveChat()
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize = (event: any): void => {
+    this.windowInnerWidth = window.innerWidth;
+  };
+
+  ngOnInit(): void {
+    this.windowInnerWidth = window.innerWidth;
+    this.select_newchat = true
+    this.getHeader()
+  };
+
+  ngOnDestroy(): void {
+    this.saveChat()
+  }
+
+  ngAfterViewInit(): void {
+    let start_height = this.start_heightchat
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const divHeightInPx = entry.contentRect.height;
+        const viewportHeight = window.innerHeight;
+        this.height_text = (divHeightInPx / viewportHeight) * 100; // แปลงจาก px เป็น vh
+        // console.log('Height in vh:', this.height_text);
+        this.height_chat = start_height - this.height_text //ปรับความสูงเเชท
+        // console.log('height_chat:', this.height_chat);
+      }
+    });
+
+    resizeObserver.observe(this.Text_chat.nativeElement);
+  }
 
   setupMarked() {
     const renderer: any = new marked.Renderer();
 
     renderer.code = (code: any, language: any | undefined) => {
-      console.log('Supported languages:', hljs.listLanguages());
+      // console.log('Supported languages:', hljs.listLanguages());
       language = code.lang;
-      console.log("Language:", language);
-      console.log("Code:", code);
+      // console.log("Language:", language);
+      // console.log("Code:", code);
 
       // ตรวจสอบภาษาที่ใช้
       const validLang = !!(language && hljs.getLanguage(language));
-      console.log('Is valid language:', validLang);
+      // console.log('Is valid language:', validLang);
 
       // ไฮไลต์โค้ด
       let highlighted: any
@@ -97,10 +148,6 @@ export class ChatCompletionsComponent implements OnInit {
 
 
 
-  ngOnInit(): void {
-    this.getHeader()
-  };
-
   /////////////API/////////////////////
 
   getHeader() {
@@ -109,7 +156,7 @@ export class ChatCompletionsComponent implements OnInit {
         // this.isOkLoading = false;
 
         this.headerdata = res.data
-        console.log("header>>>>", this.headerdata);
+        // console.log("header>>>>", this.headerdata);
       },
       (err: any) => {
         console.log("getError>>>>", err);
@@ -122,7 +169,12 @@ export class ChatCompletionsComponent implements OnInit {
     this.service.gethistory(uid).subscribe(
       (res: any) => {
         this.historydata = res.data
-        console.log("history>>>>", this.historydata);
+        this.header_chattext = res.data[0].content
+        setTimeout(() => {
+          this.handleScrollToBottom()
+        }, 300);
+
+        // console.log("history>>>>", this.historydata);
       },
       (err: any) => {
         console.log("getError>>>>", err);
@@ -131,9 +183,14 @@ export class ChatCompletionsComponent implements OnInit {
   }
 
   selectHistory(uid: any) {
-    console.log('uid', uid);
+    // console.log('uid', uid);
+    this.saveChat()
+    this.uid_chat = uid
+    console.log('uid_chat', this.uid_chat);
+    this.select_newchat = false
     this.getHistory(uid)
-
+    this.messages = []
+    this.fix_scrollbug = 0
     this.historydata.forEach((element: any) => {
       if (element.uid == uid) {
         this.isChatuid[element.uid] = true
@@ -145,25 +202,40 @@ export class ChatCompletionsComponent implements OnInit {
   }
 
   message(e: any) {
-    console.log('e', e);
-    let data = this.inputRemarkapproved
-    console.log('data', data);
-    let chat_msg =  {
-      role : 'user',
-      content : data
-  }
-    if (e.isTrusted && e.type == "click") {
-      this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
-      this.inputRemarkapproved = '';  // ล้างข้อความใน textarea
-      this.getResponse_chat(data)
+    // console.log('e', e);
+    if (this.input_chat != '') {
+      let data = this.input_chat
+      // console.log('data', data);
+      let chat_msg = {
+        role: 'user',
+        content: data
+      }
+      if (e.isTrusted && e.type == "click") {
+        this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
+        this.input_chat = '';  // ล้างข้อความใน textarea
+        this.getResponse_chat(data)
+        this.fix_scrollbug = 0 // เเก้บัค scroll สั่น
+        setTimeout(() => {
+          this.handleScrollToBottom()
+        }, 100);
+        this.height_text = this.start_heightchat  // รีเซตความสูงเเชท
+      }
+      if (e.isTrusted && e.type == "keydown") {
+        e.preventDefault(); // ป้องกันไม่ให้ขึ้นบรรทัดใหม่เมื่อกด Enter
+        this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
+        this.input_chat = '';  // ล้างข้อความใน textarea
+        this.getResponse_chat(data)
+        this.fix_scrollbug = 0  // เเก้บัค scroll สั่น
+        setTimeout(() => {
+          this.handleScrollToBottom()
+        }, 100);
+        this.height_text = this.start_heightchat // รีเซตความสูงเเชท
+      }
+      this.input_chat = '';
+    } else {
+      e.preventDefault();
+      this.input_chat = ''
     }
-    if (e.isTrusted && e.type == "keydown") {
-      e.preventDefault(); // ป้องกันไม่ให้ขึ้นบรรทัดใหม่เมื่อกด Enter
-      this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
-      this.inputRemarkapproved = '';  // ล้างข้อความใน textarea
-      this.getResponse_chat(data)
-    }
-    this.inputRemarkapproved = '';
   }
 
   getResponse_chat(input: any) {
@@ -175,20 +247,34 @@ export class ChatCompletionsComponent implements OnInit {
           content: input
         }
       ],
-      stream: true
+      stream: true,
+      uid : this.uid_chat, 
     }
     this.isloading = true
+    let chat_msg = {
+      role: 'model',
+      content: 'loading'
+    }
+    this.messages.push(chat_msg);
     this.service.getresponse_chat(body).subscribe(
       (res: any) => {
         // this.historydata = res.data
-        console.log("res_getResponse_chat>>>>", res);
-        let chat_msg =  {
-          role : 'model',
-          content : res.data
-      }
-        this.messages.push(chat_msg);
-        console.log('this.messages',this.messages);
+        // console.log("res_getResponse_chat>>>>", res);
         this.isloading = false
+        chat_msg = {
+          role: 'model',
+          content: res.data
+        }
+        this.messages[this.messages.length - 1] = chat_msg
+        this.checkmessage = true
+        console.log('checkmessage',this.checkmessage);
+        
+        this.fix_scrollbug = 200
+        setTimeout(() => {
+          this.handleScrollToBottom()
+        }, 1);
+        // console.log('this.messages',this.messages);
+
       },
       (err: any) => {
         console.log("getError>>>>", err);
@@ -197,5 +283,83 @@ export class ChatCompletionsComponent implements OnInit {
   }
 
 
+
+  handleScrollChatBody(event: Event) {
+    const chatBody = event.target as HTMLElement;
+    const scrollTop = chatBody.scrollTop;
+    const clientHeight = chatBody.clientHeight;
+    const scrollHeight = chatBody.scrollHeight;
+    // console.log('scrollTop', scrollTop);
+    // console.log('clientHeight', clientHeight);
+    // console.log('scrollHeight', scrollHeight);
+
+
+    // ตรวจสอบว่ามีการเก็บค่า previous scrollTop หรือไม่
+    const prevScrollTop = (chatBody as any)._prevScrollTop || 0;
+
+    // ถ้าสิ้นสุดการเลื่อนแล้ว
+    if (scrollTop + clientHeight > scrollHeight - 100) {
+      this.isShowScrollToBottomBtn = false;
+      this.shouldScrollChatBodyToBottom = true;
+    }
+
+    // ถ้ามีการเลื่อนขึ้น
+    if (scrollHeight > clientHeight && prevScrollTop > 1 && prevScrollTop > scrollTop + 1) {
+      this.shouldScrollChatBodyToBottom = false;
+      this.isShowScrollToBottomBtn = true;
+    }
+
+    // เก็บค่า scrollTop ปัจจุบันใน property ขององค์ประกอบ DOM เอง
+    (chatBody as any)._prevScrollTop = scrollTop;
+  }
+
+  handleScrollToBottom() {
+    const chatBody = this.chatBody.nativeElement;
+
+    // ตรวจสอบว่าไม่ได้อยู่ที่ตำแหน่งด้านล่างสุดแล้วค่อยเลื่อน
+    if (chatBody.scrollTop + chatBody.clientHeight < chatBody.scrollHeight + this.fix_scrollbug) {
+      chatBody.scroll({
+        top: chatBody.scrollHeight,
+        behavior: 'smooth' // เลื่อนแบบนุ่มนวล
+      });
+      this.isShowScrollToBottomBtn = false;
+      this.shouldScrollChatBodyToBottom = true;
+    }
+  }
+
+  saveChat() {
+    if (this.checkmessage) {
+      console.log('รีเฟรชหน้านี้');
+      let body = {
+        messages: "END",
+        uid: this.uid_chat
+      }
+      this.service.save_chat(body).subscribe(
+        (res: any) => {
+          console.log("res_saveChat>>>>", res);
+        },
+        (err: any) => {
+          console.log("getError>>>>", err);
+        }
+      );
+    }
+  }
+
+  selectNewchat(){
+    this.select_newchat = true
+    this.header_chattext = 'New Chat'
+    this.getHeader()
+    this.saveChat()
+    this.messages = []
+    this.historydata = []
+  }
+
 }
+
+
+
+
+
+
+
 
