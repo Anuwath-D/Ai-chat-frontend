@@ -3,8 +3,8 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
     <div style="height: 95vh;width: 25vw;background-color: #FFF;border-radius: 5px;">
         <div style="font-size: 24px;font-weight: 600;padding: 24px;">AIChat - IOT</div>
         <div style="display: flex;padding: 0px 20px;align-items: center;margin-left: 20px;margin-right: 20px;
-            border-radius: 12px;height: 40px;cursor: pointer;gap: 5px;" [class]="select_newchat ? 'selectnewchat' : 'newchat'"
-            (click)="selectNewchat()">
+            border-radius: 12px;height: 40px;cursor: pointer;gap: 5px;"
+            [class]="select_newchat ? 'selectnewchat' : 'newchat'" (click)="selectNewchat()">
             <span class="material-symbols-outlined" *ngIf="!select_newchat">
                 add
             </span>
@@ -54,7 +54,13 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                 <span class="material-symbols-outlined" *ngIf="item.role == 'model'" style="padding-top: 24px;">
                     smart_toy
                 </span>
-                <div class="box-user" *ngIf="item.role == 'user'">
+                <div class="box-user" *ngIf="item.role == 'user' && item.type == 'image' && item.content">
+                    <div class="user">
+                        <img *ngIf="item.role == 'user'" [src]="item.content"
+                            style="max-height: 30vh;">
+                    </div>
+                </div>
+                <div class="box-user" *ngIf="item.role == 'user' && item.type == 'text'">
                     <div class="user">
                         <div *ngIf="item.role == 'user'" style="font-size: 16px;">
                             {{ item.content }}
@@ -90,36 +96,54 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                     keyboard_double_arrow_down
                 </span>
             </button>
+            <!-- <div>
+                <input type="file" (change)="onFileSelected($event)">
+                <button (click)="onUpload()" [disabled]="!selectedFile">Upload</button>
+            </div> -->
         </div>
-        <div #Text_chat
-            style="padding: 24px;position: absolute;bottom: 0;width: 100%;display: flex;gap: 5px;background-color: #FFF;">
-            <textarea nz-input
-                [placeholder]="windowInnerWidth > 920 ?'What do you want to know ? I can help you discover new things.':'What do you want to know ?'"
-                [nzAutosize]="{ minRows: 2, maxRows: 12 }" nzBorderless [(ngModel)]="input_chat"
-                (keydown.enter)="message($event)" style="width: 100%;height: 100%;border-radius: 16px;padding: 16px;
-                overflow: hidden;resize: none;border: 0;font-size: 16px;background-color: #F5F5F5;"></textarea>
-            <div style="display: flex;align-items: flex-end;margin-bottom: 8px;">
-                <button nz-button nzType="primary" style="width: 40px;display: flex; align-items: center;justify-content: center;
-                    border-radius: 100px;height: 40px;border: 0;" (click)="message($event)" [disabled]="!input_chat"
-                    [style.background-color]="input_chat? '#000000':'#A0A0A0'" *ngIf="isloading === false">
-                    <span class="material-symbols-outlined" style="color: #FFF;font-size: 36px;">
-                        assistant_navigation
-                    </span>
-                </button>
-                <div style="width: 40px;display: flex; align-items: center;justify-content: center;
-                border-radius: 100px;height: 40px;border: 0;background-color: #000000;" *ngIf="isloading === true">
-                    <div class="animated-div">
-                        <span class="material-symbols-outlined" style="color: #FFF;font-size: 40px;">
-                            keyboard_double_arrow_up
+        <div #Text_chat style="padding: 24px;position: absolute;bottom: 0;width: 100%;display: flex;background-color: #FFF;
+            flex-direction: column;gap: 10px;">
+            <!-- แสดงรูปภาพที่เลือก -->
+            <div *ngIf="imageUrl" class="image-container">
+                <img [src]="imageUrl">
+            </div>
+            <div style="display: flex;width: 100%;gap: 5px;">
+                <div style="display: flex; align-items: flex-end;">
+                    <label for="fileInput" style="cursor: pointer;">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: #A0A0A0;">
+                            wallpaper_slideshow
                         </span>
-                    </div>
+                    </label>
+                    <input id="fileInput" type="file" (change)="onFileSelected($event)" style="display: none;">
                 </div>
-                <!-- <button nz-button nzType="primary" style="width: 40px;display: flex; align-items: center;justify-content: center;
+                <textarea nz-input
+                    [placeholder]="windowInnerWidth > 920 ?'What do you want to know ? I can help you discover new things.':'What do you want to know ?'"
+                    [nzAutosize]="{ minRows: 2, maxRows: 12 }" nzBorderless [(ngModel)]="input_chat"
+                    (keydown.enter)="message($event)" style="overflow: hidden;resize: none;border: 0;font-size: 16px;width: 100%;height: 100%;
+                background-color: #F5F5F5;border-radius: 16px;padding: 16px;"></textarea>
+                <div style="display: flex;align-items: flex-end;margin-bottom: 8px;">
+                    <button nz-button nzType="primary" style="width: 40px;display: flex; align-items: center;justify-content: center;
+                    border-radius: 100px;height: 40px;border: 0;" (click)="message($event)" [disabled]="!input_chat"
+                        [style.background-color]="input_chat? '#000000':'#A0A0A0'" *ngIf="isloading === false">
+                        <span class="material-symbols-outlined" style="color: #FFF;font-size: 36px;">
+                            assistant_navigation
+                        </span>
+                    </button>
+                    <div style="width: 40px;display: flex; align-items: center;justify-content: center;
+                border-radius: 100px;height: 40px;border: 0;background-color: #000000;" *ngIf="isloading === true">
+                        <div class="animated-div">
+                            <span class="material-symbols-outlined" style="color: #FFF;font-size: 40px;">
+                                keyboard_double_arrow_up
+                            </span>
+                        </div>
+                    </div>
+                    <!-- <button nz-button nzType="primary" style="width: 40px;display: flex; align-items: center;justify-content: center;
                     border-radius: 100px;height: 40px;border: 0;background-color: #000000;" *ngIf="isloading === true">
                     <span class="material-symbols-outlined" style="color: #FFF;font-size: 40px;">
                         pending
                     </span>
                 </button> -->
+                </div>
             </div>
         </div>
     </div>

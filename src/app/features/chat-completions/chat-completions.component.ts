@@ -8,6 +8,7 @@ import bash from 'highlight.js/lib/languages/bash';
 import python from 'highlight.js/lib/languages/python';
 import { marked } from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
 
 
 // ลงทะเบียนภาษา
@@ -38,15 +39,19 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   start_heightchat = 78
   height_chat = 0
   height_text = 0
-  windowInnerWidth : any
+  windowInnerWidth: any
   checkmessage = false
   header_chattext = ''
   select_newchat = false
 
+  selectedFile: File | null = null;
+  imageUrl: string | ArrayBuffer | null = null;
+
   constructor(
     private service: ApiService,
     private el: ElementRef,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private http: HttpClient
   ) { this.setupMarked(); }
 
   @ViewChild('chatBody') chatBody!: ElementRef;
@@ -208,12 +213,28 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       // console.log('data', data);
       let chat_msg = {
         role: 'user',
-        content: data
+        content: data,
+        type: 'text'
       }
-      if (e.isTrusted && e.type == "click") {
+
+      let dataimage = this.imageUrl
+      // console.log('data', data);
+      let chat_image = {
+        role: 'user',
+        content: dataimage,
+        type: 'image'
+      }
+
+      if (e.isTrusted && e.type == "click") {        
+        this.messages.push(chat_image);
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
-        this.getResponse_chat(data)
+        this.imageUrl = null
+        if (this.selectedFile) {
+          this.onUpload(data)
+        } else {
+          this.getResponse_chat(data)
+        }
         this.fix_scrollbug = 0 // เเก้บัค scroll สั่น
         setTimeout(() => {
           this.handleScrollToBottom()
@@ -222,9 +243,15 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       }
       if (e.isTrusted && e.type == "keydown") {
         e.preventDefault(); // ป้องกันไม่ให้ขึ้นบรรทัดใหม่เมื่อกด Enter
+        this.messages.push(chat_image);
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
-        this.getResponse_chat(data)
+        this.imageUrl = null
+        if (this.selectedFile) {
+          this.onUpload(data)
+        } else {
+          this.getResponse_chat(data)
+        }
         this.fix_scrollbug = 0  // เเก้บัค scroll สั่น
         setTimeout(() => {
           this.handleScrollToBottom()
@@ -248,12 +275,13 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         }
       ],
       stream: true,
-      uid : this.uid_chat, 
+      uid: this.uid_chat,
     }
     this.isloading = true
     let chat_msg = {
       role: 'model',
-      content: 'loading'
+      content: 'loading',
+      type: 'text'
     }
     this.messages.push(chat_msg);
     this.service.getresponse_chat(body).subscribe(
@@ -263,12 +291,13 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         this.isloading = false
         chat_msg = {
           role: 'model',
-          content: res.data
+          content: res.data,
+          type: 'text'
         }
         this.messages[this.messages.length - 1] = chat_msg
         this.checkmessage = true
-        console.log('checkmessage',this.checkmessage);
-        
+        console.log('checkmessage', this.checkmessage);
+
         this.fix_scrollbug = 200
         setTimeout(() => {
           this.handleScrollToBottom()
@@ -345,13 +374,67 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
-  selectNewchat(){
+  selectNewchat() {
     this.select_newchat = true
     this.header_chattext = 'New Chat'
     this.getHeader()
     this.saveChat()
     this.messages = []
     this.historydata = []
+  }
+
+  // ฟังก์ชันสำหรับจัดการการเลือกไฟล์
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    this.selectedFile = file;
+
+    // สร้างตัวอ่านไฟล์ (FileReader) เพื่อแสดงรูปภาพที่เลือก
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imageUrl = reader.result;
+
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ฟังก์ชันสำหรับอัปโหลดไฟล์
+  onUpload(data: any) {
+    let chat_msg = {
+      role: 'model',
+      content: 'loading',
+      type: 'text'
+    }
+    this.messages.push(chat_msg);
+    this.isloading = true
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('photo', this.selectedFile, this.selectedFile.name);
+      formData.append('text', data);
+
+      this.service.image_text(formData).subscribe(
+        (res: any) => {
+          console.log("image_text>>>>", res);
+          this.isloading = false
+          let chat_msg = {
+            role: 'model',
+            content: res.data,
+            type: 'text'
+          }
+          this.messages[this.messages.length - 1] = chat_msg
+          this.checkmessage = true
+          console.log('checkmessage', this.checkmessage);
+  
+          this.fix_scrollbug = 200
+          setTimeout(() => {
+            this.handleScrollToBottom()
+          }, 1);
+          // console.log('this.messages',this.messages);
+        },
+        (err: any) => {
+          console.log("getError>>>>", err);
+        }
+      );
+    }
   }
 
 }

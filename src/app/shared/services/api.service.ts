@@ -27,4 +27,9 @@ export class ApiService {
     return this.http.post<any>(`/api/v1/chat/completions/save` , body)
   }
 
+  image_text(formData:any){
+    return this.http.post<any>(`/api/v1/chat/completions/upload` , formData)
+  }
+
+
 }
