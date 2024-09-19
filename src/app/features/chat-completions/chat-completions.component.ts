@@ -42,7 +42,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   windowInnerWidth: any
   checkmessage = false
   header_chattext = ''
-  select_newchat = false
+  select_newchattext = false
+  select_newchatimage = false
+  type_text = ''
+  isOkLoading = false;
 
   selectedFile: File | null = null;
   imageUrl: string | ArrayBuffer | null = null;
@@ -60,7 +63,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   // ฟังก์ชันนี้จะถูกเรียกเมื่อผู้ใช้พยายามปิดหน้าเว็บหรือรีเฟรช
   @HostListener('window:unload', ['$event'])
   unloadHandler(event: any) {
-    this.saveChat()
+    // this.saveChat()
   }
 
   @HostListener('window:resize', ['$event'])
@@ -70,12 +73,11 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnInit(): void {
     this.windowInnerWidth = window.innerWidth;
-    this.select_newchat = true
-    this.getHeader()
+    this.selectNewchatText()
   };
 
   ngOnDestroy(): void {
-    this.saveChat()
+    // this.saveChat()
   }
 
   ngAfterViewInit(): void {
@@ -170,11 +172,12 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   getHistory(uid: any) {
-    // this.isOkLoading = true;
     this.service.gethistory(uid).subscribe(
       (res: any) => {
         this.historydata = res.data
         this.header_chattext = res.data[0].content
+        this.type_text = res.data[0].type
+        this.isOkLoading = false;
         setTimeout(() => {
           this.handleScrollToBottom()
         }, 300);
@@ -189,13 +192,16 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
   selectHistory(uid: any) {
     // console.log('uid', uid);
-    this.saveChat()
+    // this.saveChat()
     this.uid_chat = uid
     console.log('uid_chat', this.uid_chat);
-    this.select_newchat = false
+    this.select_newchattext = false
+    this.select_newchatimage = false
     this.getHistory(uid)
     this.messages = []
+    this.historydata = []
     this.fix_scrollbug = 0
+    this.isOkLoading = true;
     this.historydata.forEach((element: any) => {
       if (element.uid == uid) {
         this.isChatuid[element.uid] = true
@@ -225,12 +231,12 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         type: 'image'
       }
 
-      if (e.isTrusted && e.type == "click") {        
+      if (e.isTrusted && e.type == "click") {
         this.messages.push(chat_image);
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
         this.imageUrl = null
-        if (this.selectedFile) {
+        if (this.select_newchatimage) {
           this.onUpload(data)
         } else {
           this.getResponse_chat(data)
@@ -247,7 +253,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
         this.imageUrl = null
-        if (this.selectedFile) {
+        if (this.select_newchatimage) {
           this.onUpload(data)
         } else {
           this.getResponse_chat(data)
@@ -276,6 +282,8 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       ],
       stream: true,
       uid: this.uid_chat,
+      type: 'textonly',
+      type_chat : 'text'
     }
     this.isloading = true
     let chat_msg = {
@@ -356,29 +364,46 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
-  saveChat() {
-    if (this.checkmessage) {
-      console.log('รีเฟรชหน้านี้');
-      let body = {
-        messages: "END",
-        uid: this.uid_chat
-      }
-      this.service.save_chat(body).subscribe(
-        (res: any) => {
-          console.log("res_saveChat>>>>", res);
-        },
-        (err: any) => {
-          console.log("getError>>>>", err);
-        }
-      );
-    }
+  // saveChat() {
+  //   if (this.checkmessage) {
+  //     console.log('รีเฟรชหน้านี้');
+  //     let body = {
+  //       messages: "END",
+  //       uid: this.uid_chat
+  //     }
+  //     this.service.save_chat(body).subscribe(
+  //       (res: any) => {
+  //         console.log("res_saveChat>>>>", res);
+  //       },
+  //       (err: any) => {
+  //         console.log("getError>>>>", err);
+  //       }
+  //     );
+  //   }
+  // }
+
+  selectNewchatText() {
+    this.select_newchattext = true
+    this.select_newchatimage = false
+    this.header_chattext = 'New Chat'
+    this.type_text = ''
+    this.uid_chat = JSON.stringify(new Date().getTime())
+    console.log('this.uid_chat',this.uid_chat);
+    this.getHeader()
+    // this.saveChat()
+    this.messages = []
+    this.historydata = []
   }
 
-  selectNewchat() {
-    this.select_newchat = true
+  selectNewchatImage() {
+    this.select_newchatimage = true
+    this.select_newchattext = false
     this.header_chattext = 'New Chat'
+    this.uid_chat = JSON.stringify(new Date().getTime())
+    console.log('this.uid_chat',this.uid_chat);
+    this.type_text = ''
     this.getHeader()
-    this.saveChat()
+    // this.saveChat()
     this.messages = []
     this.historydata = []
   }
@@ -406,10 +431,17 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     }
     this.messages.push(chat_msg);
     this.isloading = true
+    let typechat = ''
+    const formData = new FormData();
     if (this.selectedFile) {
-      const formData = new FormData();
-      formData.append('photo', this.selectedFile, this.selectedFile.name);
+      formData.append('photo', this.selectedFile, this.selectedFile.name); 
+      formData.append('type', 'imageandtext');
+    }else{
+      formData.append('type', 'textonly');
+    }
       formData.append('text', data);
+      formData.append('uid', this.uid_chat);
+      formData.append('type_chat', 'image');
 
       this.service.image_text(formData).subscribe(
         (res: any) => {
@@ -423,7 +455,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
           this.messages[this.messages.length - 1] = chat_msg
           this.checkmessage = true
           console.log('checkmessage', this.checkmessage);
-  
+          this.selectedFile =  null
           this.fix_scrollbug = 200
           setTimeout(() => {
             this.handleScrollToBottom()
@@ -434,7 +466,6 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
           console.log("getError>>>>", err);
         }
       );
-    }
   }
 
 }
