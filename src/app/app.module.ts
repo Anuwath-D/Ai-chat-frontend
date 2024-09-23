@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 
 import { HttpClientModule } from '@angular/common/http';
-import { ChatCompletionsComponent } from '../features/chat-completions/chat-completions.component';
+import { ChatCompletionsComponent } from './features/chat-completions/chat-completions.component';
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
