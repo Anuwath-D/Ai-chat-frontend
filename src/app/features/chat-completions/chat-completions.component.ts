@@ -175,7 +175,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     this.service.gethistory(uid).subscribe(
       (res: any) => {
         this.historydata = res.data
-        this.header_chattext = res.data[0].content
+        this.header_chattext = res.data[0].content ? res.data[0].content:res.data[1].content
         this.type_text = res.data[0].type
         this.isOkLoading = false;
         setTimeout(() => {
@@ -195,6 +195,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     // this.saveChat()
     this.uid_chat = uid
     console.log('uid_chat', this.uid_chat);
+    this.header_chattext = ''
     this.select_newchattext = false
     this.select_newchatimage = false
     this.getHistory(uid)
