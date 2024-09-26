@@ -27,6 +27,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   historydata: Array<any> = [] as Array<any>;
   uid_chat = ''
   headerdata: Array<any> = [] as Array<any>;
+  files_data: Array<any> = [] as Array<any>;
+  total_flies = 0
+  isselect_filesname: { [idx: number]: boolean } = {};
   isChatuid: { [uid: number]: boolean } = {};
   input_chat: string = '';
   savechat_onweb: Array<any> = [] as Array<any>;
@@ -44,11 +47,20 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   header_chattext = ''
   select_newchattext = false
   select_newchatimage = false
+  select_newchatfiles = false
+  select_historychat = false
   type_text = ''
   isOkLoading = false;
+  selectFileToChat = false
+  isdeleteFile = false
+  nameTodelete = ''
 
-  selectedFile: File | null = null;
+  selectedimage: File | null = null;
   imageUrl: string | ArrayBuffer | null = null;
+  selectedfile: File | null = null;
+  fileName: string | null = null;
+  fileUrl: string | null = null;
+  checknamefile = ''
 
   constructor(
     private service: ApiService,
@@ -171,11 +183,26 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     );
   }
 
+  getFiles() {
+    this.service.getfiles().subscribe(
+      (res: any) => {
+        // this.isOkLoading = false;
+
+        this.files_data = res.data
+        this.total_flies = res.total_flies
+        // console.log("header>>>>", this.headerdata);
+      },
+      (err: any) => {
+        console.log("getError>>>>", err);
+      }
+    );
+  }
+
   getHistory(uid: any) {
     this.service.gethistory(uid).subscribe(
       (res: any) => {
         this.historydata = res.data
-        this.header_chattext = res.data[0].content ? res.data[0].content:res.data[1].content
+        this.header_chattext = res.data[0].content ? res.data[0].content : res.data[1].content
         this.type_text = res.data[0].type
         this.isOkLoading = false;
         setTimeout(() => {
@@ -198,6 +225,8 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     this.header_chattext = ''
     this.select_newchattext = false
     this.select_newchatimage = false
+    this.select_newchatfiles = false
+    this.select_historychat = true
     this.getHistory(uid)
     this.messages = []
     this.historydata = []
@@ -237,9 +266,13 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
         this.imageUrl = null
+        if (this.selectFileToChat) {
+          this.onUploadfile(data)
+        }
         if (this.select_newchatimage) {
           this.onUpload(data)
-        } else {
+        }
+        if (this.select_newchattext || this.select_historychat) {
           this.getResponse_chat(data)
         }
         this.fix_scrollbug = 0 // เเก้บัค scroll สั่น
@@ -254,9 +287,13 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
         this.imageUrl = null
+        if (this.selectFileToChat) {
+          this.onUploadfile(data)
+        }
         if (this.select_newchatimage) {
           this.onUpload(data)
-        } else {
+        }
+        if (this.select_newchattext || this.select_historychat) {
           this.getResponse_chat(data)
         }
         this.fix_scrollbug = 0  // เเก้บัค scroll สั่น
@@ -284,7 +321,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       stream: true,
       uid: this.uid_chat,
       type: 'textonly',
-      type_chat : 'text'
+      type_chat: 'text'
     }
     this.isloading = true
     let chat_msg = {
@@ -386,10 +423,12 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   selectNewchatText() {
     this.select_newchattext = true
     this.select_newchatimage = false
+    this.select_newchatfiles = false
+    this.select_historychat = false
     this.header_chattext = 'New Chat'
     this.type_text = ''
     this.uid_chat = JSON.stringify(new Date().getTime())
-    console.log('this.uid_chat',this.uid_chat);
+    console.log('this.uid_chat', this.uid_chat);
     this.getHeader()
     // this.saveChat()
     this.messages = []
@@ -399,9 +438,11 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   selectNewchatImage() {
     this.select_newchatimage = true
     this.select_newchattext = false
+    this.select_newchatfiles = false
+    this.select_historychat = false
     this.header_chattext = 'New Chat'
     this.uid_chat = JSON.stringify(new Date().getTime())
-    console.log('this.uid_chat',this.uid_chat);
+    console.log('this.uid_chat', this.uid_chat);
     this.type_text = ''
     this.getHeader()
     // this.saveChat()
@@ -409,10 +450,62 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     this.historydata = []
   }
 
+  selectNewchatFiles(checked: boolean) {
+    if (checked) {
+      this.select_newchatimage = false
+      this.select_newchattext = true
+      this.select_newchatfiles = true
+      this.select_historychat = false
+      this.header_chattext = 'New Chat'
+      this.selectFileToChat = false
+      this.getFiles()
+    } else {
+      this.select_newchatimage = false
+      this.select_newchattext = true
+      this.select_newchatfiles = false
+      this.select_historychat = false
+      this.header_chattext = 'New Chat'
+      this.selectFileToChat = false
+      this.files_data.forEach((element: any, i: any) => {
+        this.isselect_filesname[i] = false
+      })
+    }
+
+    this.uid_chat = JSON.stringify(new Date().getTime())
+    console.log('this.uid_chat', this.uid_chat);
+    this.type_text = ''
+    this.getHeader()
+    // this.saveChat()
+    this.messages = []
+    this.historydata = []
+  }
+
+  selectFiles_name(file_name: string, idx: any) {
+    this.selectFileToChat = true
+    this.select_newchattext = false
+    console.log('file_name', file_name);
+    this.files_data.forEach((element: any, i: any) => {
+      if (i == idx) {
+        this.isselect_filesname[i] = true
+        this.header_chattext = file_name
+        this.checknamefile = file_name
+      } else {
+        this.isselect_filesname[i] = false
+      }
+
+    })
+
+  }
+
+  selectEdit_file(event: Event,name:any) {
+    event.stopPropagation();
+    this.nameTodelete = name
+  }
+
   // ฟังก์ชันสำหรับจัดการการเลือกไฟล์
-  onFileSelected(event: any) {
+  onImageSelected(event: any) {
     const file = event.target.files[0];
-    this.selectedFile = file;
+    this.selectedimage = file;
 
     // สร้างตัวอ่านไฟล์ (FileReader) เพื่อแสดงรูปภาพที่เลือก
     const reader = new FileReader();
@@ -421,6 +514,31 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
     };
     reader.readAsDataURL(file);
+  }
+
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    this.selectedfile = file;
+    this.checknamefile = file.name
+    if (file) {
+      this.fileName = file.name;  // เก็บชื่อไฟล์
+      console.log('file.name', file.name);
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      console.log('fileExtension', fileExtension);
+      if (fileExtension === 'txt' || fileExtension === 'pdf') {
+        const reader = new FileReader();
+
+        // แปลงไฟล์เป็น Data URL เพื่อนำไปใช้แสดงในหน้า HTML
+        reader.onload = (e: any) => {
+          this.fileUrl = e.target.result;
+        };
+        this.onUploadfile('')
+        reader.readAsDataURL(file);  // อ่านไฟล์เป็น Data URL
+      } else {
+        this.fileUrl = null; // ถ้าไม่ใช่ PDF จะไม่แสดงตัวอย่าง
+        alert('Please upload a valid PDF file.');
+      }
+    }
   }
 
   // ฟังก์ชันสำหรับอัปโหลดไฟล์
@@ -434,19 +552,68 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     this.isloading = true
     let typechat = ''
     const formData = new FormData();
-    if (this.selectedFile) {
-      formData.append('photo', this.selectedFile, this.selectedFile.name); 
+    if (this.selectedimage) {
+      formData.append('photo', this.selectedimage, this.selectedimage.name);
       formData.append('type', 'imageandtext');
-    }else{
+    } else {
       formData.append('type', 'textonly');
     }
+    formData.append('text', data);
+    formData.append('uid', this.uid_chat);
+    formData.append('type_chat', 'image');
+
+    this.service.image_text(formData).subscribe(
+      (res: any) => {
+        console.log("image_text>>>>", res);
+        this.isloading = false
+        let chat_msg = {
+          role: 'model',
+          content: res.data,
+          type: 'text'
+        }
+        this.messages[this.messages.length - 1] = chat_msg
+        this.checkmessage = true
+        console.log('checkmessage', this.checkmessage);
+        this.selectedimage = null
+        this.fix_scrollbug = 200
+        setTimeout(() => {
+          this.handleScrollToBottom()
+        }, 1);
+        // console.log('this.messages',this.messages);
+      },
+      (err: any) => {
+        console.log("getError>>>>", err);
+      }
+    );
+  }
+
+  // ฟังก์ชันสำหรับอัปโหลดไฟล์
+  onUploadfile(data: any) {
+    if (data) {
+      let chat_msg = {
+        role: 'model',
+        content: 'loading',
+        type: 'text'
+      }
+      this.messages.push(chat_msg);
+      this.isloading = true
+      let typechat = ''
+      const formData = new FormData();
+      if (this.selectedfile) {
+        formData.append('file', this.selectedfile, this.selectedfile.name);
+        formData.append('type', 'fileandtext');
+      } else {
+        formData.append('type', 'textonly');
+      }
       formData.append('text', data);
       formData.append('uid', this.uid_chat);
-      formData.append('type_chat', 'image');
+      formData.append('type_chat', 'file');
+      formData.append('file_name', this.checknamefile);
 
-      this.service.image_text(formData).subscribe(
+      this.service.upload_file(formData).subscribe(
         (res: any) => {
-          console.log("image_text>>>>", res);
+          console.log("upload_file>>>>", res);
+          this.header_chattext = res.file_name
           this.isloading = false
           let chat_msg = {
             role: 'model',
@@ -456,7 +623,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
           this.messages[this.messages.length - 1] = chat_msg
           this.checkmessage = true
           console.log('checkmessage', this.checkmessage);
-          this.selectedFile =  null
+          this.selectedfile = null
           this.fix_scrollbug = 200
           setTimeout(() => {
             this.handleScrollToBottom()
@@ -464,9 +631,74 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
           // console.log('this.messages',this.messages);
         },
         (err: any) => {
-          console.log("getError>>>>", err);
+          console.log("upload_fileError>>>>", err);
+          this.selectedfile = null
         }
       );
+    } else {
+      // this.isloading = true
+      const formData = new FormData();
+      if (this.selectedfile) {
+        formData.append('file', this.selectedfile, this.selectedfile.name);
+        formData.append('type', 'fileandtext');
+      } else {
+        formData.append('type', 'textonly');
+      }
+      formData.append('text', data);
+      formData.append('uid', this.uid_chat);
+      formData.append('type_chat', 'file');
+      formData.append('file_name', this.checknamefile);
+
+      this.service.upload_file(formData).subscribe(
+        (res: any) => {
+          console.log("upload_file>>>>", res);
+          // this.isloading = false
+          // let chat_msg = {
+          //   role: 'model',
+          //   content: res.data,
+          //   type: 'text'
+          // }
+          // this.messages[this.messages.length - 1] = chat_msg
+          // this.checkmessage = true
+          // console.log('checkmessage', this.checkmessage);
+          this.selectedfile = null
+          this.getFiles()
+          // this.fix_scrollbug = 200
+          // setTimeout(() => {
+          //   this.handleScrollToBottom()
+          // }, 1);
+          // console.log('this.messages',this.messages);
+        },
+        (err: any) => {
+          console.log("upload_fileError>>>>", err);
+        }
+      );
+    }
+
+  }
+
+  deleteFile_Open(): void {
+    this.isdeleteFile = true;
+  }
+
+  deleteFile_Confirm(): void {
+    console.log('Button ok clicked!');
+    let name = this.nameTodelete
+      this.service.deleteFile(name).subscribe(
+        (res: any) => {
+          // this.isOkLoading = false;
+          this.isdeleteFile = false;
+          this.getFiles()
+        },
+        (err: any) => {
+          console.log("deleteFileError>>>>", err);
+        }
+      );
+  }
+
+  deleteFile_Cancel(): void {
+    console.log('Button cancel clicked!');
+    this.isdeleteFile = false;
   }
 
 }

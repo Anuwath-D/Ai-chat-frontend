@@ -15,6 +15,15 @@ export class ApiService {
     return this.http.get<any>(`/api/v1/chat/history/header`)
   }
 
+  getfiles(){
+    return this.http.get<any>(`/api/v1/chat/history/files`)
+  }
+
+  deleteFile(name:any){
+    return this.http.delete<any>(`/api/v1/chat/history/files/delete?fileName=${name}`)
+
+  }
+
   gethistory(uid:any){
     return this.http.get<any>(`/api/v1/chat/history/detail?uid=${uid}`)
   }
@@ -28,8 +37,11 @@ export class ApiService {
   }
 
   image_text(formData:any){
-    return this.http.post<any>(`/api/v1/chat/completions/upload` , formData)
+    return this.http.post<any>(`/api/v1/chat/completions/upload_images` , formData)
   }
 
+  upload_file(formData:any){
+    return this.http.post<any>(`/api/v1/chat/completions/upload_files` , formData)
+  }
 
 }

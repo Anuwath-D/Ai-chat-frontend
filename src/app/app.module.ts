@@ -13,6 +13,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
 @NgModule({
   declarations: [
@@ -29,7 +31,9 @@ import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
     NzInputModule,
     NzButtonModule,
     NzSpinModule,
-    NzSkeletonModule
+    NzSkeletonModule,
+    NzDropDownModule,
+    NzModalModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

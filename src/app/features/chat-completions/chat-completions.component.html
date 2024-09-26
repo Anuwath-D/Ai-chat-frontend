@@ -14,7 +14,7 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
             <span>new chat - Text</span>
         </div>
         <div style="display: flex;padding: 0px 20px;align-items: center;margin-left: 20px;margin-right: 20px;
-        border-radius: 12px;height: 40px;cursor: pointer;gap: 5px;"
+        border-radius: 12px;height: 40px;cursor: pointer;gap: 5px;margin-bottom: 8px;"
             [class]="select_newchatimage ? 'selectnewchat' : 'newchat'" (click)="selectNewchatImage()">
             <span class="material-symbols-outlined" *ngIf="!select_newchatimage">
                 add_photo_alternate
@@ -24,22 +24,107 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
             </span>
             <span>new chat - Images</span>
         </div>
+        <div style="display: flex;padding-left: 40px;align-items: center;height: 40px;
+        cursor: pointer;gap: 5px;margin-left: 20px;margin-right: 20px;"
+            [style.border-radius]="select_newchatfiles? '12px 12px 0px 0px':'12px'"
+            (click)="selectNewchatFiles(!select_newchatfiles)" [class]="selectFileToChat ? 'selectnewchat' : 'newchat'">
+            <div style="display: flex;width: 100%;justify-content: space-between;">
+                <div style="display: flex;">
+                    <span class="material-symbols-outlined" *ngIf="!selectFileToChat"
+                        style="margin-left: -18px;margin-top: 8px;">
+                        note_stack_add
+                    </span>
+                    <span class="material-symbols-outlined" *ngIf="selectFileToChat"
+                        style="margin-left: -18px;margin-top: 8px;">
+                        check_circle
+                    </span>
+                    <span style="margin-left: 5px;
+                        display: flex;align-items: center;">new chat - Files</span>
+                </div>
+                <div>
+                    <span class="material-symbols-outlined" style="margin-right: 10px;margin-top: 8px;"
+                        [style.transform]="select_newchatfiles? 'rotate(180deg) translateX(2.5px)':''">
+                        keyboard_arrow_down
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="select_newchatfiles"
+            style="background: #FCFCFD;margin-left: 20px;margin-right: 20px;border-radius: 0px 0px 12px 12px;">
+            <div style="display: flex;align-items: center;justify-content: center;height: 40px;cursor: pointer;
+                border-radius:12px;">
+                <label for="fileInput" style="cursor: pointer;width: 150px;height: 35px;display: flex;border-radius:12px;
+                align-items: center;justify-content: center;gap: 5px;background: cornflowerblue;color: #FFF;">
+                    <span class="material-symbols-outlined">
+                        attach_file_add
+                    </span>
+                    <div>
+                        Upload File
+                    </div>
+                </label>
+                <input id="fileInput" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt"
+                    style="display: none;">
+            </div>
+            <div *ngFor="let arr of files_data; index as idx">
+                <div style="display: flex;align-items: center;height: 40px;cursor: pointer;
+                gap: 5px;padding-left: 20px;padding-right: 20px;border-radius:12px;justify-content: space-between;"
+                    (click)="selectFiles_name(arr.file_name,idx)"
+                    [class]="isselect_filesname[idx] ? 'selectnewchat' : 'file'">
+                    {{arr.file_name}}
+                    <a nz-dropdown nzTrigger="click" [nzDropdownMenu]="menu" style="display: flex;
+                                  align-items: center;font-size: 25px;margin-left: 5px;"
+                        (click)="selectEdit_file($event,arr.file_name)" *ngIf="!isselect_filesname[idx]">
+                        <span class="material-symbols-outlined" style="cursor: pointer;
+                        background: whitesmoke;border-radius: 100px;color: #A0A0A0;">
+                            more_horiz
+                        </span>
+                    </a>
+                    <nz-dropdown-menu #menu="nzDropdownMenu">
+                        <ul nz-menu nzSelectable style="width: 135px;padding: 0px;border-radius: 8px;
+                                  background: var(--Shades-white, rgba(255, 255, 255, 1));">
+                            <!-- <li nz-menu-item class="editclass" style="border-bottom: 1px solid rgba(231, 231, 231, 1);">
+                                <div style="display: flex;align-items: flex-end;">
+                                    <span class="material-symbols-outlined">
+                                        edit
+                                    </span>
+                                    <span
+                                        style="margin-left: 8px;font-family:Noto Sans Thai;font-style: normal;font-size: 16px;">แก้ไข</span>
+                                </div>
+                            </li> -->
+                            <li nz-menu-item class="deleteclass" (click)="deleteFile_Open()">
+                                <div style="display: flex;align-items: flex-end;">
+                                    <span class="material-symbols-outlined">
+                                        delete
+                                    </span>
+                                    <span
+                                        style="margin-left: 8px;font-family:Noto Sans Thai;font-style: normal;font-size: 16px;">ลบข้อมูล</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </nz-dropdown-menu>
+                    <span class="material-symbols-outlined" *ngIf="isselect_filesname[idx]">
+                        done_all
+                    </span>
+                </div>
 
-        <div style="font-size: 18px;font-weight: 600;padding: 20px;margin-top: 10px;">Chat History</div>
-        <div class="selecthistory" style="height: 72vh;overflow-y: auto;">
+            </div>
+
+        </div>
+        <div style="font-size: 18px;font-weight: 600;padding: 20px;margin-top:10px;">Chat History</div>
+        <div class="selecthistory" style="overflow-y: auto;" [style.height]="select_newchatfiles? '40vh':'57vh'">
             <ul nz-menu nzMode="inline" style="display: flex;flex-direction: column;padding: 0px 20px;">
                 <li nz-menu-item *ngFor="let item of headerdata; index as idx" (click)="selectHistory(item.uid)"
                     style="width: 100%;border-radius: 12px;" class="historybox">
                     <div style="display: flex;align-items: center;gap: 5px;">
-                    <span class="material-symbols-outlined" *ngIf="item.type_chat == 'text'">
-                        abc
-                    </span>
-                    <span class="material-symbols-outlined" *ngIf="item.type_chat == 'image'">
-                        wallpaper
-                    </span>
-                    <div style="width: 5px;height: 25px;border-left: solid 1px ;"></div>
-                    <span>{{item.content}}</span>
-                </div>
+                        <span class="material-symbols-outlined" *ngIf="item.type_chat == 'text'">
+                            abc
+                        </span>
+                        <span class="material-symbols-outlined" *ngIf="item.type_chat == 'image'">
+                            wallpaper
+                        </span>
+                        <div style="width: 5px;height: 25px;border-left: solid 1px ;"></div>
+                        <span>{{item.content}}</span>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -51,8 +136,10 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
         </div>
         <div #chatBody class="chat-body"
             style="overflow-y: auto;overflow-x: auto;margin-top: 10px;padding: 10px 20px 0px 20px;position: relative;"
-            [style.height]="input_chat ? height_chat + 'vh' : type_text == 'imageandtext'? '84vh':'72vh'" (scroll)="handleScrollChatBody($event)">
-            <nz-skeleton [nzAvatar]="true" [nzParagraph]="{ rows: 4 }" [nzLoading]="isOkLoading" *ngIf="isOkLoading"></nz-skeleton>
+            [style.height]="input_chat ? height_chat + 'vh' : type_text == 'imageandtext'? '84vh':'72vh'"
+            (scroll)="handleScrollChatBody($event)">
+            <nz-skeleton [nzAvatar]="true" [nzParagraph]="{ rows: 4 }" [nzLoading]="isOkLoading"
+                *ngIf="isOkLoading"></nz-skeleton>
             <div *ngFor="let item of historydata" class="box-chat">
                 <span class="material-symbols-outlined" *ngIf="item.role == 'model'" style="padding-top: 24px;">
                     smart_toy
@@ -60,7 +147,8 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                 <div class="box-user" *ngIf="item.role == 'user' && item.type == 'imageandtext' && item.imagetobase64">
                     <div class="user">
                         <!-- <img [src]="'data:image/png;base64,' + (AssetByuidList.img? AssetByuidList.img:fallback)" style="height: 260px;max-width: 100%;"/> -->
-                        <img *ngIf="item.role == 'user'" [src]="'data:image/png;base64,' + item.imagetobase64" style="max-height: 30vh;">
+                        <img *ngIf="item.role == 'user'" [src]="'data:image/png;base64,' + item.imagetobase64"
+                            style="max-height: 30vh;">
                     </div>
                 </div>
                 <div class="box-user" *ngIf="item.role == 'user' && item.type == 'imageandtext' && item.content">
@@ -140,9 +228,13 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
         <div #Text_chat style="padding: 24px;position: absolute;bottom: 0;width: 100%;display: flex;background-color: #FFF;
             flex-direction: column;gap: 10px;" *ngIf="type_text !== 'imageandtext'">
             <!-- แสดงรูปภาพที่เลือก -->
-            <div *ngIf="imageUrl" class="image-container">
+            <div *ngIf="imageUrl && select_newchatimage" class="image-container">
                 <img [src]="imageUrl">
             </div>
+            <!-- แสดงชื่อไฟล์ที่เลือก -->
+            <!-- <div *ngIf="fileName && select_newchatfiles">
+                <p>File Name: {{ fileName }}</p>
+            </div> -->
             <div style="display: flex;width: 100%;gap: 5px;">
                 <div style="display: flex; align-items: flex-end;" *ngIf="select_newchatimage">
                     <label for="fileInput" style="cursor: pointer;">
@@ -150,7 +242,7 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                             wallpaper_slideshow
                         </span>
                     </label>
-                    <input id="fileInput" type="file" (change)="onFileSelected($event)" style="display: none;">
+                    <input id="fileInput" type="file" (change)="onImageSelected($event)" style="display: none;">
                 </div>
                 <textarea nz-input
                     [placeholder]="windowInnerWidth > 920 ?'What do you want to know ? I can help you discover new things.':'What do you want to know ?'"
@@ -184,3 +276,36 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
         </div>
     </div>
 </div>
+
+<nz-modal [(nzVisible)]="isdeleteFile" [nzFooter]="null" nzWidth="400px">
+    <div *nzModalContent>
+        <div style="padding: 0px 0px 24px 0px;display: flex;align-items: center; gap: 16px;flex-direction: column;">
+            <div style="width: 48px;height: 48px;background: rgba(253, 231, 231, 1);
+            display: flex;align-items: center;justify-content: center;border-radius: 100px;">
+                <span class="material-symbols-outlined" style="color: red;font-size: 32px;">
+                    scan_delete
+                </span>
+            </div>
+            <span
+                style="color:#121212; font-size: 20px; font-weight: 600;font-family: Noto Sans Thai; font-style: normal;">
+                ต้องการลบ {{nameTodelete}} ใช่หรือไม่
+            </span>
+        </div>
+        <div style="display: flex; gap: 16px;">
+            <button class="default_button" style="background:#F1F5FE;border: 0px;width: 70%;
+          height: 30px;border-radius: 12px;" (click)="deleteFile_Cancel()">
+                <span
+                    style="color: #0C5EF7; font-size: 16px; font-weight: 500;font-family: Noto Sans Thai; font-style: normal;">
+                    ยกเลิก
+                </span>
+            </button>
+            <button class="default_button" style="background:#0C5EF7;border: 0px;width: 70%;
+          height: 30px;border-radius: 12px;" (click)="deleteFile_Confirm()">
+                <span
+                    style="color: #FFF; font-size: 16px; font-weight: 500;font-family: Noto Sans Thai; font-style: normal;">
+                    ยืนยัน
+                </span>
+            </button>
+        </div>
+    </div>
+</nz-modal>
