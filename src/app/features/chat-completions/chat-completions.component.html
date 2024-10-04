@@ -65,6 +65,24 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                 <input id="fileInput" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt"
                     style="display: none;">
             </div>
+            <div style="padding: 8px 20px;font-size: 16px;border-radius:12px;;display: flex;
+            justify-content: space-between;cursor: pointer;" [class]="selectallfiles ? 'selectnewchat' : 'file'"
+                (click)="selectall_files(!selectallfiles)">
+                <div style="display: flex;gap: 7px;">
+                    <div style="width: 20px;height: 20px;border-radius: 4px;border: solid 2px ;"*ngIf="!selectallfiles">
+                    </div>
+                    <div style="width: 20px;height: 20px;background-color: #1890FF;border-radius: 4px;display: flex;
+                    align-items: center;justify-content: center;"*ngIf="selectallfiles">
+                        <span class="material-symbols-outlined" style="color: #FFFFFF;font-size: 22px;">
+                            check
+                            </span>
+                    </div>
+                    <div>เลือกไฟล์ทั้งหมด</div>
+                </div>
+                <span class="material-symbols-outlined" *ngIf="selectallfiles">
+                    done_all
+                </span>
+            </div>
             <div *ngFor="let arr of files_data; index as idx">
                 <div style="display: flex;align-items: center;height: 40px;cursor: pointer;
                 gap: 5px;padding-left: 20px;padding-right: 20px;border-radius:12px;justify-content: space-between;"
@@ -113,7 +131,7 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
         <div style="font-size: 18px;font-weight: 600;padding: 20px;margin-top:10px;">Chat History</div>
         <div class="selecthistory" style="overflow-y: auto;" [style.height]="select_newchatfiles? '40vh':'57vh'">
             <ul nz-menu nzMode="inline" style="display: flex;flex-direction: column;padding: 0px 20px;">
-                <li nz-menu-item *ngFor="let item of headerdata; index as idx" (click)="selectHistory(item.uid)"
+                <li nz-menu-item *ngFor="let item of headerdata; index as idx" (click)="selectHistory(item.uid_chat)"
                     style="width: 100%;border-radius: 12px;" class="historybox">
                     <div style="display: flex;align-items: center;gap: 5px;">
                         <span class="material-symbols-outlined" *ngIf="item.type_chat == 'text'">

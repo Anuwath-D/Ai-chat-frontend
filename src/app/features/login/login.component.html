@@ -1,0 +1,132 @@
+<div style="background-color: #212121;width: 100vw;height: 100vh;display: flex;
+justify-content: center;align-items: center;">
+    <div style="background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(244, 247, 251) 100%);
+    width: 375px;border-radius: 40px;padding: 40px 35px;
+    box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 30px 30px -20px;">
+
+        <!-- Log in -->
+        <div *ngIf="user_register == false">
+            <div style="font-size: 35px;font-weight: 600;
+    margin-bottom: 30px;display: flex;justify-content: center;color: rgb(16, 137, 211);">Log in</div>
+            <div style="display: flex;flex-direction: column;gap: 20px;">
+                <!-- Username -->
+                <input nz-input placeholder="Username" [(ngModel)]="username" type="text" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+        height: 45px;border: 0;" />
+                <!-- Password -->
+                <nz-input-group [nzSuffix]="iconpassword" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+                    height: 45px;border: 0;">
+                    <input nz-input placeholder="Password" [(ngModel)]="password"
+                        [type]="hide_password ? 'password' : 'text' " />
+                </nz-input-group>
+                <ng-template #iconpassword>
+                    <span class="material-symbols-outlined" style="color: #A0A0A0;font-size: 20px;cursor: pointer;"
+                        (click)="open_hiddenpassword(!hide_password,1)">
+                        {{hide_password ? 'visibility_off' : 'visibility'}}
+                    </span>
+                </ng-template>
+            </div>
+            <div style="position: relative;">
+            <button nz-button primary style="margin-top: 30px;width: 100%;height: 45px;border-radius: 20px;
+        background: linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%);
+        box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;" (click)="login()">
+                <span style="color: #FFFFFF;font-size: 16px;">Log in</span>
+            </button>
+            <div style="color: red;position: absolute;">
+                <span *ngIf="login_errormsg">*{{login_errormsg}}</span>
+            </div>
+        </div>
+            <div style="margin-top: 30px;width: 100%;
+            display: flex;justify-content: center;">
+                <span style="color: dimgray;">Don't have an account ?
+                    <span style="color: rgb(16, 137, 211);text-decoration: underline;cursor: pointer;"
+                        (click)="open_register(true)">&nbsp;Register now</span>
+                </span>
+            </div>
+        </div>
+
+
+        <!-- Register -->
+        <div *ngIf="user_register == true">
+            <div style="font-size: 35px;font-weight: 600;
+    margin-bottom: 30px;display: flex;justify-content: center;color: rgb(16, 137, 211);">Register</div>
+            <div style="display: flex;flex-direction: column;gap: 20px;">
+                <!-- Username -->
+                <input nz-input placeholder="Username" [(ngModel)]="username" type="text" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+        height: 45px;border: 0;" />
+                <!-- Password -->
+                <nz-input-group [nzSuffix]="iconpassword" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+                    height: 45px;border: 0;">
+                    <input nz-input placeholder="Password" [(ngModel)]="password"
+                        [type]="hide_password ? 'password' : 'text' " (ngModelChange)="check_Password()" />
+                </nz-input-group>
+                <ng-template #iconpassword>
+                    <span class="material-symbols-outlined" style="color: #A0A0A0;font-size: 20px;cursor: pointer;"
+                        (click)="open_hiddenpassword(!hide_password,1)">
+                        {{hide_password ? 'visibility_off' : 'visibility'}}
+                    </span>
+                </ng-template>
+                <!--Confirm  Password -->
+                <div style="position: relative;">
+                    <nz-input-group [nzSuffix]="corfirmpassword" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+                    height: 45px;border: 0;">
+                        <input nz-input placeholder="Confirm Password" [(ngModel)]="corfirm_password"
+                            [type]="hide_cornfirmpassword ? 'password' : 'text' " (ngModelChange)="check_Password()" />
+                    </nz-input-group>
+                    <ng-template #corfirmpassword>
+                        <span class="material-symbols-outlined" style="color: #A0A0A0;font-size: 20px;cursor: pointer;"
+                            (click)="open_hiddenpassword(!hide_cornfirmpassword,2)">
+                            {{hide_cornfirmpassword ? 'visibility_off' : 'visibility'}}
+                        </span>
+                    </ng-template>
+                    <div style="position: absolute;font-size: 12px;
+                    margin-left: 20px;color: red;" *ngIf="text_errpassword">
+                        รหัสผ่านไม่ตรงกัน
+                    </div>
+                </div>
+                <!-- E-mail -->
+                <div style="position: relative;">
+                    <form [formGroup]="emailForm" (ngSubmit)="submitForm()">
+                        <input nz-input formControlName="email" placeholder="Email address" type="email" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+            height: 45px;border: 0;" (ngModelChange)="check_Email()" />
+                        <div *ngIf="email?.invalid && (email?.dirty || email?.touched)">
+                        </div>
+                    </form>
+                    <div style="position: absolute;font-size: 12px;
+                margin-left: 20px;color: red;" *ngIf="text_erremail">
+                        รูปแบบอีเมลไม่ถูกต้อง
+                    </div>
+                </div>
+                <!-- API-Keys -->
+                <nz-input-group [nzPrefix]="key" style="border-radius: 20px;box-shadow: #cff0ff 0px 10px 10px -5px;padding: 15px 20px;
+        height: 45px;border: 0;">
+                    <input nz-input placeholder="Your API-Keys" [(ngModel)]="api_keys" type="text" />
+                </nz-input-group>
+                <ng-template #key>
+                    <span class="material-symbols-outlined" style="color: #A0A0A0;
+                border-right: solid 1px lightgray;width: 30px;">
+                        key
+                    </span>
+                </ng-template>
+                <div style="color: rgb(16, 137, 211);font-size: 12px;
+                    text-decoration: underline;cursor: pointer;width: 120px;">
+                    <a class="button button-primary" href="https://makersuite.google.com/app/apikey" target="_blank">Get
+                        a Gemini API key</a>
+                </div>
+            </div>
+            <button nz-button primary [disabled]="!check_password || !username || !api_keys || !this.email?.value"
+                style="margin-top: 15px;width: 100%;height: 45px;border-radius: 20px;
+        box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;"
+                [style.background]="check_password && username && api_keys && this.email?.value ? 
+                'linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%)' : 'linear-gradient(45deg, #A0A0A0 0%, lightgrey 100%)'" (click)="register()">
+                <span style="color: #FFFFFF;font-size: 16px;">register</span>
+            </button>
+            <div style="margin-top: 30px;width: 100%;
+            display: flex;justify-content: center;">
+                <span style="color: dimgray;">Already have an acount ?
+                    <span style="color: rgb(16, 137, 211);text-decoration: underline;cursor: pointer;"
+                        (click)="open_register(false)">&nbsp;Log in</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

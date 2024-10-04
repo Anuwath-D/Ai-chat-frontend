@@ -15,11 +15,15 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { LoginComponent } from './features/login/login.component';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     AppComponent,
     ChatCompletionsComponent,
+    LoginComponent,
   ],
   imports: [
     BrowserModule,
@@ -34,6 +38,8 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
     NzSkeletonModule,
     NzDropDownModule,
     NzModalModule,
+    NzFormModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

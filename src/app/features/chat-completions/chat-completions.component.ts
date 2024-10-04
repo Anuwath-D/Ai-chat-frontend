@@ -9,6 +9,7 @@ import python from 'highlight.js/lib/languages/python';
 import { marked } from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 
 // ลงทะเบียนภาษา
@@ -54,6 +55,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   selectFileToChat = false
   isdeleteFile = false
   nameTodelete = ''
+  selectallfiles = false
 
   selectedimage: File | null = null;
   imageUrl: string | ArrayBuffer | null = null;
@@ -66,7 +68,8 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     private service: ApiService,
     private el: ElementRef,
     private sanitizer: DomSanitizer,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router,
   ) { this.setupMarked(); }
 
   @ViewChild('chatBody') chatBody!: ElementRef;
@@ -178,7 +181,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         // console.log("header>>>>", this.headerdata);
       },
       (err: any) => {
-        console.log("getError>>>>", err);
+        console.log("getHeader-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
+        }
       }
     );
   }
@@ -193,7 +199,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         // console.log("header>>>>", this.headerdata);
       },
       (err: any) => {
-        console.log("getError>>>>", err);
+        console.log("getFiles-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
+        }
       }
     );
   }
@@ -212,7 +221,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         // console.log("history>>>>", this.historydata);
       },
       (err: any) => {
-        console.log("getError>>>>", err);
+        console.log("getHistory-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
+        }
       }
     );
   }
@@ -319,7 +331,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         }
       ],
       stream: true,
-      uid: this.uid_chat,
+      uid_chat: this.uid_chat,
       type: 'textonly',
       type_chat: 'text'
     }
@@ -352,7 +364,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
       },
       (err: any) => {
-        console.log("getError>>>>", err);
+        console.log("getResponse_chat-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
+        }
       }
     );
   }
@@ -402,30 +417,13 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
-  // saveChat() {
-  //   if (this.checkmessage) {
-  //     console.log('รีเฟรชหน้านี้');
-  //     let body = {
-  //       messages: "END",
-  //       uid: this.uid_chat
-  //     }
-  //     this.service.save_chat(body).subscribe(
-  //       (res: any) => {
-  //         console.log("res_saveChat>>>>", res);
-  //       },
-  //       (err: any) => {
-  //         console.log("getError>>>>", err);
-  //       }
-  //     );
-  //   }
-  // }
-
   selectNewchatText() {
     this.select_newchattext = true
     this.select_newchatimage = false
     this.select_newchatfiles = false
     this.select_historychat = false
     this.header_chattext = 'New Chat'
+    this.selectFileToChat = false
     this.type_text = ''
     this.uid_chat = JSON.stringify(new Date().getTime())
     console.log('this.uid_chat', this.uid_chat);
@@ -433,6 +431,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     // this.saveChat()
     this.messages = []
     this.historydata = []
+    this.files_data.forEach((element: any, i: any) => {
+      this.isselect_filesname[i] = false
+    })
   }
 
   selectNewchatImage() {
@@ -441,6 +442,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     this.select_newchatfiles = false
     this.select_historychat = false
     this.header_chattext = 'New Chat'
+    this.selectFileToChat = false
     this.uid_chat = JSON.stringify(new Date().getTime())
     console.log('this.uid_chat', this.uid_chat);
     this.type_text = ''
@@ -448,6 +450,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     // this.saveChat()
     this.messages = []
     this.historydata = []
+    this.files_data.forEach((element: any, i: any) => {
+      this.isselect_filesname[i] = false
+    })
   }
 
   selectNewchatFiles(checked: boolean) {
@@ -466,6 +471,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       this.select_historychat = false
       this.header_chattext = 'New Chat'
       this.selectFileToChat = false
+      this.selectallfiles = false
       this.files_data.forEach((element: any, i: any) => {
         this.isselect_filesname[i] = false
       })
@@ -481,23 +487,27 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   selectFiles_name(file_name: string, idx: any) {
-    this.selectFileToChat = true
-    this.select_newchattext = false
-    console.log('file_name', file_name);
-    this.files_data.forEach((element: any, i: any) => {
-      if (i == idx) {
-        this.isselect_filesname[i] = true
-        this.header_chattext = file_name
-        this.checknamefile = file_name
-      } else {
-        this.isselect_filesname[i] = false
-      }
+    if (this.selectallfiles) {
+      // ไม่ต้องทำอะไร
+    } else {
+      this.selectFileToChat = true
+      this.select_newchattext = false
+      console.log('file_name', file_name);
+      this.files_data.forEach((element: any, i: any) => {
+        if (i == idx) {
+          this.isselect_filesname[i] = true
+          this.header_chattext = file_name
+          this.checknamefile = file_name
+        } else {
+          this.isselect_filesname[i] = false
+        }
 
-    })
+      })
+    }
 
   }
 
-  selectEdit_file(event: Event,name:any) {
+  selectEdit_file(event: Event, name: any) {
     event.stopPropagation();
     this.nameTodelete = name
   }
@@ -559,7 +569,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       formData.append('type', 'textonly');
     }
     formData.append('text', data);
-    formData.append('uid', this.uid_chat);
+    formData.append('uid_chat', this.uid_chat);
     formData.append('type_chat', 'image');
 
     this.service.image_text(formData).subscribe(
@@ -582,7 +592,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         // console.log('this.messages',this.messages);
       },
       (err: any) => {
-        console.log("getError>>>>", err);
+        console.log("onUpload-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
+        }
       }
     );
   }
@@ -606,9 +619,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         formData.append('type', 'textonly');
       }
       formData.append('text', data);
-      formData.append('uid', this.uid_chat);
+      formData.append('uid_chat', this.uid_chat);
       formData.append('type_chat', 'file');
-      formData.append('file_name', this.checknamefile);
+      formData.append('file_name', this.selectallfiles ?  'เลือกไฟล์ทั้งหมด' : this.checknamefile );
 
       this.service.upload_file(formData).subscribe(
         (res: any) => {
@@ -631,8 +644,11 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
           // console.log('this.messages',this.messages);
         },
         (err: any) => {
-          console.log("upload_fileError>>>>", err);
+          console.log("onUploadfile-Error>>>>", err);
           this.selectedfile = null
+          if (err.status == 401) {
+            this.router.navigate([``]);
+          }
         }
       );
     } else {
@@ -645,7 +661,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         formData.append('type', 'textonly');
       }
       formData.append('text', data);
-      formData.append('uid', this.uid_chat);
+      formData.append('uid_chat', this.uid_chat);
       formData.append('type_chat', 'file');
       formData.append('file_name', this.checknamefile);
 
@@ -670,7 +686,10 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
           // console.log('this.messages',this.messages);
         },
         (err: any) => {
-          console.log("upload_fileError>>>>", err);
+          console.log("onUploadfile-Error>>>>", err);
+          if (err.status == 401) {
+            this.router.navigate([``]);
+          }
         }
       );
     }
@@ -684,16 +703,19 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   deleteFile_Confirm(): void {
     console.log('Button ok clicked!');
     let name = this.nameTodelete
-      this.service.deleteFile(name).subscribe(
-        (res: any) => {
-          // this.isOkLoading = false;
-          this.isdeleteFile = false;
-          this.getFiles()
-        },
-        (err: any) => {
-          console.log("deleteFileError>>>>", err);
+    this.service.deleteFile(name).subscribe(
+      (res: any) => {
+        // this.isOkLoading = false;
+        this.isdeleteFile = false;
+        this.getFiles()
+      },
+      (err: any) => {
+        console.log("deleteFile-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
         }
-      );
+      }
+    );
   }
 
   deleteFile_Cancel(): void {
@@ -701,6 +723,26 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     this.isdeleteFile = false;
   }
 
+  selectall_files(check: any) {
+
+    if (check) {
+      this.selectallfiles = true
+      this.header_chattext = 'เลือกไฟล์ทั้งหมด'
+      this.selectFileToChat = true
+      this.select_newchattext = false
+      this.files_data.forEach((element: any, i: any) => {
+        this.isselect_filesname[i] = true
+      })
+    } else {
+      this.selectNewchatText()
+      this.select_newchatfiles = true
+      this.selectallfiles = false
+      this.files_data.forEach((element: any, i: any) => {
+        this.isselect_filesname[i] = false
+      })
+    }
+
+  }
 }
 
 
