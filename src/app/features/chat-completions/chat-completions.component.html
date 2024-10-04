@@ -50,7 +50,8 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
             </div>
         </div>
         <div *ngIf="select_newchatfiles"
-            style="background: #FCFCFD;margin-left: 20px;margin-right: 20px;border-radius: 0px 0px 12px 12px;">
+            style="background: #FCFCFD;margin-left: 20px;margin-right: 20px;border-radius: 0px 0px 12px 12px;
+                height: 25vh;overflow-y: auto;">
             <div style="display: flex;align-items: center;justify-content: center;height: 40px;cursor: pointer;
                 border-radius:12px;">
                 <label for="fileInput" style="cursor: pointer;width: 150px;height: 35px;display: flex;border-radius:12px;
@@ -129,7 +130,7 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
 
         </div>
         <div style="font-size: 18px;font-weight: 600;padding: 20px;margin-top:10px;">Chat History</div>
-        <div class="selecthistory" style="overflow-y: auto;" [style.height]="select_newchatfiles? '40vh':'57vh'">
+        <div class="selecthistory" style="overflow-y: auto;" [style.height]="select_newchatfiles? '34vh':'57vh'">
             <ul nz-menu nzMode="inline" style="display: flex;flex-direction: column;padding: 0px 20px;">
                 <li nz-menu-item *ngFor="let item of headerdata; index as idx" (click)="selectHistory(item.uid_chat)"
                     style="width: 100%;border-radius: 12px;" class="historybox">
