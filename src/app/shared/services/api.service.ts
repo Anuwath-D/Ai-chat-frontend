@@ -72,4 +72,12 @@ export class ApiService {
     })
   }
 
+  
+  upload_audio(formData: any) {
+    const headers = { Authorization: `Bearer ${this.getToken()}` };
+    return this.http.post<any>(`/api/v1/chat/completions/upload_audio`, formData , {
+      headers: headers
+    })
+  }
+
 }

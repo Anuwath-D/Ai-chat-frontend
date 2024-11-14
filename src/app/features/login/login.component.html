@@ -28,7 +28,8 @@ justify-content: center;align-items: center;">
             <div style="position: relative;">
             <button nz-button primary style="margin-top: 30px;width: 100%;height: 45px;border-radius: 20px;
         background: linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%);
-        box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;" (click)="login()">
+        box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;" 
+        id="login_btn" (click)="login()" (keydown.enter)="login()">
                 <span style="color: #FFFFFF;font-size: 16px;">Log in</span>
             </button>
             <div style="color: red;position: absolute;">
@@ -117,7 +118,8 @@ justify-content: center;align-items: center;">
                 style="margin-top: 15px;width: 100%;height: 45px;border-radius: 20px;
         box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;"
                 [style.background]="check_password && username && api_keys && this.email?.value ? 
-                'linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%)' : 'linear-gradient(45deg, #A0A0A0 0%, lightgrey 100%)'" (click)="register()">
+                'linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%)' : 'linear-gradient(45deg, #A0A0A0 0%, lightgrey 100%)'" 
+                id="register_btn" (click)="register()">
                 <span style="color: #FFFFFF;font-size: 16px;">register</span>
             </button>
             <div style="margin-top: 30px;width: 100%;

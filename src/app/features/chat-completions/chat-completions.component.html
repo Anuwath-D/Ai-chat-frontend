@@ -24,6 +24,17 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
             </span>
             <span>new chat - Images</span>
         </div>
+        <div style="display: flex;padding: 0px 20px;align-items: center;margin-left: 20px;margin-right: 20px;
+        border-radius: 12px;height: 40px;cursor: pointer;gap: 5px;margin-bottom: 8px;"
+            [class]="select_newchataudio ? 'selectnewchat' : 'newchat'" (click)="selectNewchatAudio()">
+            <span class="material-symbols-outlined" *ngIf="!select_newchataudio">
+                volume_up
+            </span>
+            <span class="material-symbols-outlined" *ngIf="select_newchataudio">
+                check_circle
+            </span>
+            <span>new chat - Audio</span>
+        </div>
         <div style="display: flex;padding-left: 40px;align-items: center;height: 40px;
         cursor: pointer;gap: 5px;margin-left: 20px;margin-right: 20px;"
             [style.border-radius]="select_newchatfiles? '12px 12px 0px 0px':'12px'"
@@ -49,8 +60,7 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                 </div>
             </div>
         </div>
-        <div *ngIf="select_newchatfiles"
-            style="background: #FCFCFD;margin-left: 20px;margin-right: 20px;border-radius: 0px 0px 12px 12px;
+        <div *ngIf="select_newchatfiles" style="background: #FCFCFD;margin-left: 20px;margin-right: 20px;border-radius: 0px 0px 12px 12px;
                 height: 25vh;overflow-y: auto;">
             <div style="display: flex;align-items: center;justify-content: center;height: 40px;cursor: pointer;
                 border-radius:12px;">
@@ -70,13 +80,14 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
             justify-content: space-between;cursor: pointer;" [class]="selectallfiles ? 'selectnewchat' : 'file'"
                 (click)="selectall_files(!selectallfiles)">
                 <div style="display: flex;gap: 7px;">
-                    <div style="width: 20px;height: 20px;border-radius: 4px;border: solid 2px ;"*ngIf="!selectallfiles">
+                    <div style="width: 20px;height: 20px;border-radius: 4px;border: solid 2px ;"
+                        *ngIf="!selectallfiles">
                     </div>
                     <div style="width: 20px;height: 20px;background-color: #1890FF;border-radius: 4px;display: flex;
-                    align-items: center;justify-content: center;"*ngIf="selectallfiles">
+                    align-items: center;justify-content: center;" *ngIf="selectallfiles">
                         <span class="material-symbols-outlined" style="color: #FFFFFF;font-size: 22px;">
                             check
-                            </span>
+                        </span>
                     </div>
                     <div>เลือกไฟล์ทั้งหมด</div>
                 </div>
@@ -203,6 +214,12 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
                         <img *ngIf="item.role == 'user'" [src]="item.content" style="max-height: 30vh;">
                     </div>
                 </div>
+                <div class="box-user" *ngIf="item.role == 'user' && item.type == 'audio' && item.content">
+                    <audio *ngIf="audioUrl_html" controls>
+                        <source [src]="audioUrl_html" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
                 <div class="box-user" *ngIf="item.role == 'user' && item.type == 'text'">
                     <div class="user">
                         <div *ngIf="item.role == 'user'" style="font-size: 16px;">
@@ -250,11 +267,24 @@ display: flex;align-items: center;justify-content: center;gap: 16px;">
             <div *ngIf="imageUrl && select_newchatimage" class="image-container">
                 <img [src]="imageUrl">
             </div>
+            <!-- แสดงไฟล์เสียงที่เลือก -->
+            <audio *ngIf="audioUrl && select_newchataudio" controls>
+                <source [src]="audioUrl" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
             <!-- แสดงชื่อไฟล์ที่เลือก -->
             <!-- <div *ngIf="fileName && select_newchatfiles">
                 <p>File Name: {{ fileName }}</p>
             </div> -->
             <div style="display: flex;width: 100%;gap: 5px;">
+                <div style="display: flex; align-items: flex-end;" *ngIf="select_newchataudio">
+                    <label for="audioInput" style="cursor: pointer;">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: #A0A0A0;">
+                            adaptive_audio_mic
+                        </span>
+                    </label>
+                    <input id="audioInput" type="file"  accept=".mp3" (change)="onAudioSelected($event)" style="display: none;">
+                </div>
                 <div style="display: flex; align-items: flex-end;" *ngIf="select_newchatimage">
                     <label for="fileInput" style="cursor: pointer;">
                         <span class="material-symbols-outlined" style="font-size: 40px; color: #A0A0A0;">

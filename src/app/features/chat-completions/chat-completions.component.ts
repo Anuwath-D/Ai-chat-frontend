@@ -48,6 +48,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   header_chattext = ''
   select_newchattext = false
   select_newchatimage = false
+  select_newchataudio = false
   select_newchatfiles = false
   select_historychat = false
   type_text = ''
@@ -59,6 +60,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
   selectedimage: File | null = null;
   imageUrl: string | ArrayBuffer | null = null;
+  selectedaudio: File | null = null;
+  audioUrl: string | ArrayBuffer | null = null;
+  audioUrl_html: string | ArrayBuffer | null = null;
   selectedfile: File | null = null;
   fileName: string | null = null;
   fileUrl: string | null = null;
@@ -93,6 +97,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnDestroy(): void {
     // this.saveChat()
+    this.audioUrl_html = null
   }
 
   ngAfterViewInit(): void {
@@ -265,19 +270,21 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         type: 'text'
       }
 
-      let dataimage = this.imageUrl
+      let data_files = this.imageUrl ? this.imageUrl : this.audioUrl_html
       // console.log('data', data);
-      let chat_image = {
+      let chat_files = {
         role: 'user',
-        content: dataimage,
-        type: 'image'
+        content: data_files,
+        type: this.imageUrl ? 'image' : 'audio'
       }
 
+
       if (e.isTrusted && e.type == "click") {
-        this.messages.push(chat_image);
+        this.messages.push(chat_files);
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
         this.imageUrl = null
+        this.audioUrl = null
         if (this.selectFileToChat) {
           this.onUploadfile(data)
         }
@@ -286,6 +293,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         }
         if (this.select_newchattext || this.select_historychat) {
           this.getResponse_chat(data)
+        }
+        if (this.select_newchataudio) {
+          this.getaudio_chat(data)
         }
         this.fix_scrollbug = 0 // เเก้บัค scroll สั่น
         setTimeout(() => {
@@ -295,10 +305,11 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       }
       if (e.isTrusted && e.type == "keydown") {
         e.preventDefault(); // ป้องกันไม่ให้ขึ้นบรรทัดใหม่เมื่อกด Enter
-        this.messages.push(chat_image);
+        this.messages.push(chat_files);
         this.messages.push(chat_msg);  // เพิ่มข้อความไปยังรายการข้อความ
         this.input_chat = '';  // ล้างข้อความใน textarea
         this.imageUrl = null
+        this.audioUrl = null
         if (this.selectFileToChat) {
           this.onUploadfile(data)
         }
@@ -307,6 +318,9 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
         }
         if (this.select_newchattext || this.select_historychat) {
           this.getResponse_chat(data)
+        }
+        if (this.select_newchataudio) {
+          this.getaudio_chat(data)
         }
         this.fix_scrollbug = 0  // เเก้บัค scroll สั่น
         setTimeout(() => {
@@ -418,6 +432,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   selectNewchatText() {
+    this.select_newchataudio = false
     this.select_newchattext = true
     this.select_newchatimage = false
     this.select_newchatfiles = false
@@ -437,6 +452,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   selectNewchatImage() {
+    this.select_newchataudio = false
     this.select_newchatimage = true
     this.select_newchattext = false
     this.select_newchatfiles = false
@@ -455,9 +471,31 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     })
   }
 
+  selectNewchatAudio() {
+    this.select_newchataudio = true
+    this.select_newchattext = false
+    this.select_newchatimage = false
+    this.select_newchatfiles = false
+    this.select_historychat = false
+    this.header_chattext = 'New Chat'
+    this.selectFileToChat = false
+    this.type_text = ''
+    this.uid_chat = JSON.stringify(new Date().getTime())
+    console.log('this.uid_chat', this.uid_chat);
+    this.getHeader()
+    // this.saveChat()
+    this.messages = []
+    this.historydata = []
+    this.files_data.forEach((element: any, i: any) => {
+      this.isselect_filesname[i] = false
+    })
+
+  }
+
   selectNewchatFiles(checked: boolean) {
     if (checked) {
       this.select_newchatimage = false
+      this.select_newchataudio = false
       this.select_newchattext = true
       this.select_newchatfiles = true
       this.select_historychat = false
@@ -466,6 +504,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       this.getFiles()
     } else {
       this.select_newchatimage = false
+      this.select_newchataudio = false
       this.select_newchattext = true
       this.select_newchatfiles = false
       this.select_historychat = false
@@ -524,6 +563,34 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
 
     };
     reader.readAsDataURL(file);
+  }
+
+  // ฟังก์ชันสำหรับจัดการการเลือกไฟล์
+  onAudioSelected(event: any) {
+    this.audioUrl = ''
+    const file = event.target.files[0];
+    this.selectedaudio = file;
+    console.log('selectedaudio', this.selectedaudio);
+    this.checknamefile = file.name
+    if (file) {
+      this.fileName = file.name;  // เก็บชื่อไฟล์
+      console.log('file.name', file.name);
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      console.log('fileExtension', fileExtension);
+      if (fileExtension === 'mp3') {
+        // สร้างตัวอ่านไฟล์ (FileReader) เพื่อแสดงรูปภาพที่เลือก
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.audioUrl = reader.result;
+          this.audioUrl_html = reader.result;
+
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.audioUrl = null; // ถ้าไม่ใช่ PDF จะไม่แสดงตัวอย่าง
+        alert('Please upload a valid mp3 file.');
+      }
+    }
   }
 
   onFileSelected(event: any): void {
@@ -600,6 +667,54 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
     );
   }
 
+  getaudio_chat(data: any) {
+    let chat_msg = {
+      role: 'model',
+      content: 'loading',
+      type: 'text'
+    }
+    this.messages.push(chat_msg);
+    this.isloading = true
+    let typechat = ''
+    const formData = new FormData();
+    if (this.selectedaudio) {
+      formData.append('audio', this.selectedaudio, this.selectedaudio.name);
+      // formData.append('type', 'imageandtext');
+    } else {
+      // formData.append('type', 'textonly');
+    }
+    formData.append('text', data);
+    // formData.append('uid_chat', this.uid_chat);
+    // formData.append('type_chat', 'image');
+
+    this.service.upload_audio(formData).subscribe(
+      (res: any) => {
+        console.log("image_text>>>>", res);
+        this.isloading = false
+        let chat_msg = {
+          role: 'model',
+          content: res.data,
+          type: 'text'
+        }
+        this.messages[this.messages.length - 1] = chat_msg
+        this.checkmessage = true
+        console.log('checkmessage', this.checkmessage);
+        this.selectedaudio = null
+        this.fix_scrollbug = 200
+        setTimeout(() => {
+          this.handleScrollToBottom()
+        }, 1);
+        // console.log('this.messages',this.messages);
+      },
+      (err: any) => {
+        console.log("onUpload-Error>>>>", err);
+        if (err.status == 401) {
+          this.router.navigate([``]);
+        }
+      }
+    );
+  }
+
   // ฟังก์ชันสำหรับอัปโหลดไฟล์
   onUploadfile(data: any) {
     if (data) {
@@ -621,7 +736,7 @@ export class ChatCompletionsComponent implements OnInit, AfterViewInit, OnDestro
       formData.append('text', data);
       formData.append('uid_chat', this.uid_chat);
       formData.append('type_chat', 'file');
-      formData.append('file_name', this.selectallfiles ?  'เลือกไฟล์ทั้งหมด' : this.checknamefile );
+      formData.append('file_name', this.selectallfiles ? 'เลือกไฟล์ทั้งหมด' : this.checknamefile);
 
       this.service.upload_file(formData).subscribe(
         (res: any) => {

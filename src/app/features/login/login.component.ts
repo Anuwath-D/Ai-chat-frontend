@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginService } from 'src/app/shared/services/login.service';
@@ -33,6 +33,22 @@ export class LoginComponent implements OnInit {
   text_errpassword = false
   text_erremail = false
   login_errormsg = ''
+
+  @HostListener('document:keydown.enter', ['$event']) onKeydownHandler(event: KeyboardEvent) {
+
+    event.preventDefault();
+    
+    let login_btn = document.getElementById('login_btn')
+    if (login_btn !== null){
+      login_btn.click()
+    }
+
+    let register_btn = document.getElementById('register_btn')
+    if (register_btn !== null){
+      register_btn.click()
+    }
+
+  }
 
   ngOnInit(): void {
     this.hide_password = true
