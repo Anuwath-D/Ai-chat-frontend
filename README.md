@@ -16,7 +16,7 @@ AI-Chat เป็นแอปพลิเคชันแชทบอทที่
 npm install -g @angular/cli
 ```
 
-### 2. โคลนโปรเจคและติดตั้งแพ็กเกจ
+### 2. Clone โปรเจคและติดตั้งแพ็กเกจ
 
 ```
 git clone https://github.com/Anuwath-D/Ai-chat-frontend.git
