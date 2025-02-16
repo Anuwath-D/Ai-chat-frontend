@@ -18,7 +18,9 @@ npm install -g @angular/cli
 2. โคลนโปรเจคและติดตั้งแพ็กเกจ
 
 git clone https://github.com/Anuwath-D/Ai-chat-frontend.git
+
 cd Ai-chat-frontend
+
 npm install
 
 3. เรียกใช้งานโปรเจค
