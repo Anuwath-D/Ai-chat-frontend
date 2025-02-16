@@ -12,18 +12,24 @@ AI-Chat เป็นแอปพลิเคชันแชทบอทที่
 
 ติดตั้ง Angular CLI โดยใช้คำสั่ง:
 
-`npm install -g @angular/cli`
+```
+npm install -g @angular/cli
+```
 
 ### 2. โคลนโปรเจคและติดตั้งแพ็กเกจ
 
-`git clone https://github.com/Anuwath-D/Ai-chat-frontend.git`
+```
+git clone https://github.com/Anuwath-D/Ai-chat-frontend.git
 
-`cd Ai-chat-frontend`
+cd Ai-chat-frontend
 
-`npm install`
+npm install
+```
 
 ### 3. เรียกใช้งานโปรเจค  (โปรดติดตั้งโปรเจค Ai-chat-Backend ก่อน)
 
-`npm run start:proxy`
+```
+npm run start:proxy
+```
 
 
