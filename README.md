@@ -5,7 +5,7 @@ AI-Chat เป็นแอปพลิเคชันแชทบอทที่
 
 ## วิธีติดตั้งและใช้งาน
 
-1. ติดตั้ง Node.js และ Angular CLI
+### 1. ติดตั้ง Node.js และ Angular CLI
 
 ก่อนอื่นต้องติดตั้ง Node.js และ Angular CLI (หากยังไม่มี)
 
@@ -15,7 +15,7 @@ AI-Chat เป็นแอปพลิเคชันแชทบอทที่
 
 npm install -g @angular/cli
 
-2. โคลนโปรเจคและติดตั้งแพ็กเกจ
+### 2. โคลนโปรเจคและติดตั้งแพ็กเกจ
 
 git clone https://github.com/Anuwath-D/Ai-chat-frontend.git
 
@@ -23,7 +23,7 @@ cd Ai-chat-frontend
 
 npm install
 
-3. เรียกใช้งานโปรเจค
+### 3. เรียกใช้งานโปรเจค
 
 npm run start:proxy  (โปรดติดตั้งโปรเจค Ai-chat-Backend ก่อน)
 
