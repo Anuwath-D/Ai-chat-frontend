@@ -23,9 +23,9 @@ cd Ai-chat-frontend
 
 npm install
 
-### 3. เรียกใช้งานโปรเจค
+### 3. เรียกใช้งานโปรเจค  (โปรดติดตั้งโปรเจค Ai-chat-Backend ก่อน)
 
-npm run start:proxy  (โปรดติดตั้งโปรเจค Ai-chat-Backend ก่อน)
+npm run start:proxy 
 
 
 ## Development server
